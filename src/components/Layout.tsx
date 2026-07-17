@@ -1,6 +1,9 @@
 import { Link, Outlet } from "react-router-dom";
+import { HeaderAuth } from "../lib/auth";
+import { useAdBanner } from "../lib/ads";
 
 export function Layout() {
+  useAdBanner();
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -23,6 +26,7 @@ export function Layout() {
           </Link>
           <div className="header-spacer" />
           <span className="header-tag">Stroke &amp; Neurocritical Care</span>
+          <HeaderAuth />
         </div>
       </header>
 

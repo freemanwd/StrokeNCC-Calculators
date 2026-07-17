@@ -35,16 +35,72 @@ npm run preview  # preview the production build
 npm run lint     # run oxlint
 ```
 
+## Monetization & accounts (freemium)
+
+The app is freemium: the core calculators (NIHSS, mRS, ABCD², ICH) are free;
+the **SAHVAI suite is Premium**, unlocked by an auto-renewing subscription
+(monthly / annual) purchased through Apple In-App Purchase. Free users can be
+shown an AdMob banner; Premium removes ads.
+
+Integration is driven entirely by environment variables (see `.env.example`,
+copy to `.env.local`). With no keys set, the app runs in free mode with no
+auth and no ads — nothing breaks in development.
+
+| Variable | Service | Purpose |
+| --- | --- | --- |
+| `VITE_CLERK_PUBLISHABLE_KEY` | [Clerk](https://clerk.com) | Sign-in / user accounts (header button + modal) |
+| `VITE_REVENUECAT_APPLE_API_KEY` | [RevenueCat](https://revenuecat.com) | Subscription entitlement (`premium`) and paywall packages |
+| `VITE_ADMOB_BANNER_AD_ID` | AdMob | Bottom banner for free-tier users (native app only) |
+| `VITE_PREMIUM_PREVIEW` | — | Set `true` to preview Premium features in dev/web builds |
+
+Setup checklist:
+
+1. **Clerk** — create the app, enable the **Native API** (Dashboard →
+   Native Applications), and enable **Sign in with Apple** (required by Apple
+   if any other social login is offered). Enable user-initiated account
+   deletion (Apple requirement for apps with accounts).
+2. **App Store Connect** — create the app, then two auto-renewable
+   subscriptions in one group (e.g. `premium_monthly` at $0.99/mo,
+   `premium_annual` at $10/yr). Generate an In-App Purchase key for
+   RevenueCat. Consider enrolling in the App Store **Small Business Program**
+   (15% instead of 30% commission).
+3. **RevenueCat** — add the App Store app with the IAP key, attach both
+   products to an entitlement named **`premium`**, and put them in the
+   default Offering. The paywall lists whatever packages the offering
+   returns, so plans can change without an app update.
+4. **AdMob** (optional) — create a banner ad unit; add your AdMob App ID to
+   `ios/App/App/Info.plist` under `GADApplicationIdentifier`. If serving
+   personalized ads, implement the App Tracking Transparency prompt and
+   matching App Privacy labels.
+
+## iOS build (Capacitor)
+
+The web app ships to the App Store inside a Capacitor shell. On a Mac with
+Xcode:
+
+```bash
+npm install
+npm run build
+npx cap sync ios      # copies dist/ into the native project
+npx cap open ios      # opens ios/App in Xcode
+```
+
+In Xcode: set your signing team, enable the **In-App Purchase** capability,
+then archive and upload via Organizer. The `ios/` directory is committed, so
+no regeneration is needed.
+
 ## Project structure
 
 ```
 src/
   calculators/       # score definitions + the SAHVAI multi-tool component
-    registry.ts      # metadata + list of all calculators
+    registry.ts      # metadata + list of all calculators (premium flag lives here)
     nihss.ts mrs.ts abcd2.ts ich.ts
     Sahvai.tsx sahvaiVolume.ts
-  components/         # shared UI (Layout, OptionGroup, ResultCard, ScoreCalculator)
+  components/        # shared UI (Layout, OptionGroup, ResultCard, ScoreCalculator, Paywall)
+  lib/               # auth (Clerk), premium entitlement (RevenueCat), ads (AdMob)
   pages/             # Home + CalculatorPage
+ios/                 # Capacitor iOS native project (open in Xcode)
 ```
 
 Additive scores (NIHSS, mRS, ABCD², ICH) are fully data-driven: a

@@ -88,6 +88,7 @@ export const calculators: CalcEntry[] = [
     reference: "Föttinger & Freeman, JAHA 2024; Sharma et al., Sci Rep 2024",
     sourceUrl: "https://sahvai-lab.github.io/SAHVAI-Calculator/",
     chips: ["5 tools", "SAH / NCC"],
+    premium: true,
   },
 ];
 

@@ -43,4 +43,6 @@ export interface CalculatorMeta {
   reference: string;
   sourceUrl?: string;
   chips: string[];
+  /** Premium calculators require an active subscription entitlement. */
+  premium?: boolean;
 }

@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Generated review artifacts
+screenshots/
+
+# Env files with real keys
+.env
+.env.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

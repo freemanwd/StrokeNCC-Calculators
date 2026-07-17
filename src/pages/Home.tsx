@@ -37,6 +37,9 @@ export function Home() {
                   </div>
                   <p>{calc.description}</p>
                   <div className="tag-row">
+                    {calc.premium && (
+                      <span className="chip chip-premium">★ Premium</span>
+                    )}
                     {calc.chips.map((chip) => (
                       <span className="chip" key={chip}>
                         {chip}
