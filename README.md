@@ -73,6 +73,41 @@ Setup checklist:
    personalized ads, implement the App Tracking Transparency prompt and
    matching App Privacy labels.
 
+## Web deployment (secure static hosting)
+
+The web app is a fully static SPA — there is no backend and no secret in the
+bundle (Clerk publishable keys and RevenueCat public API keys are designed to
+be public; never put secret keys in `VITE_*` variables). Deploy `dist/` to any
+static host over HTTPS:
+
+- **Vercel** — `vercel.json` is included: SPA rewrite, security headers, and
+  long-term caching for hashed assets. Import the repo, set env vars in the
+  dashboard, done.
+- **Netlify / Cloudflare Pages** — `public/_headers` and `public/_redirects`
+  provide the same headers and SPA fallback. Build command `npm run build`,
+  publish directory `dist`.
+
+Security measures shipped in those configs:
+
+- **Content-Security-Policy** restricting scripts/connections to self plus
+  Clerk's domains (no third-party script injection). If you use a production
+  Clerk instance on a custom domain (e.g. `clerk.yourdomain.com`), add it to
+  the `script-src` and `connect-src` directives.
+- **HSTS**, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`
+  (clickjacking), `Referrer-Policy`, and a restrictive `Permissions-Policy`.
+- Hashed assets cached immutably; `index.html` always revalidated so deploys
+  take effect immediately.
+
+Deployment env-var rules:
+
+- Set `VITE_CLERK_PUBLISHABLE_KEY` (production `pk_live_...`) if you want
+  sign-in on the web.
+- **Do not set `VITE_PREMIUM_PREVIEW` in production** — it unlocks Premium
+  for everyone. It exists for local development only.
+- On the web, premium purchases aren't available (Apple IAP is native-only),
+  so SAHVAI shows the paywall pointing users to the iOS app. AdMob is also
+  native-only and never loads on the web.
+
 ## iOS build (Capacitor)
 
 The web app ships to the App Store inside a Capacitor shell. On a Mac with
