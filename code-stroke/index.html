@@ -1807,7 +1807,7 @@ async function enterVR(mode){
     vrSetup(true);vrSay(mode==="ar"?"Mixed reality: the ward furniture is in your room. Point or pinch at a bay to examine.":"Welcome to the stroke unit. Point at a bay and pull the trigger, or pinch with your hand.");
   }catch(e){vrHelp(e&&e.name==="SecurityError"?"VR is blocked inside this viewer.":(e&&e.message)||"The headset did not start a VR session.")}
 }
-function vrHelp(why){$("#vrNote").textContent=why+" On a Meta Quest, open the standalone copy of this game in the Quest Browser (it needs an https link, for example GitHub Pages), then press Enter VR.";openMenu("patients");toast(why)}
+function vrHelp(why){$("#vrNote").textContent=why+" On a Meta Quest 3, open freemanwd.github.io/StrokeNCC-Calculators/code-stroke in the Quest Browser, then press Enter VR or Mixed reality.";openMenu("patients");toast(why)}
 function vrFrame(dt){
   if(VR.preview){G.camera.position.set(0,1.6,0);G.camera.rotation.set(-.12,0,0);G.rig.updateMatrixWorld(true)}
   const {p:head,d:fwd}=vrHeadPose();
@@ -1848,7 +1848,7 @@ async function vrCheck(){
   let ok=false,ar=false;try{ok=!!(navigator.xr&&await navigator.xr.isSessionSupported("immersive-vr"))}catch(e){ok=false}
   try{ar=!!(navigator.xr&&await navigator.xr.isSessionSupported("immersive-ar"))}catch(e){ar=false}
   VR.supported=ok;VR.arSupported=ar;document.querySelectorAll(".vrbtn").forEach(b=>b.style.display=ok?"":"none");document.querySelectorAll(".mrbtn").forEach(b=>b.style.display=ar?"":"none");
-  $("#vrNote").textContent=ok?"A VR headset is available. Press Enter VR, then use the controller trigger to point and select.":"No VR headset is available in this browser or viewer. On a Meta Quest, open the standalone copy of this game in the Quest Browser (it must be on an https link such as GitHub Pages), then press Enter VR.";
+  $("#vrNote").textContent=ok?"A headset is available. Press Enter VR (or Mixed reality on Quest 3 for passthrough), then point and pull the trigger, or pinch with your hand.":"No VR headset is available in this browser or viewer. On a Meta Quest 3, open freemanwd.github.io/StrokeNCC-Calculators/code-stroke in the Quest Browser, then press Enter VR or Mixed reality.";
 }
 
 /* ================= Menu ================= */
