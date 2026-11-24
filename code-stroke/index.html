@@ -407,6 +407,8 @@ Object.assign(CASES.find(x=>x.id==="c1").img,{key:"isles37",src:"ISLES'24 study 
 ].filter(([id])=>id==="c7").forEach(([id,tag,teach])=>Object.assign(CASES.find(x=>x.id===id).img,{isles:false,tag,teach,teach2:"An ACA (A2/A3) occlusion counts as a distal or medium-vessel occlusion. Within 4.5 h, thrombolysis should not wait for perfusion imaging. The 2026 AHA/ASA guideline recommends against thrombectomy for these; thrombolysis within 4.5 h is the reperfusion option for a disabling deficit."}));
 
 const TXQ=[["TE","Tenecteplase and thrombectomy"],["T","Tenecteplase only"],["E","Thrombectomy only"],["M","Neither: medical management"]];
+const HEM_M="NeuroICU and neurosurgical monitoring and management";
+function txOpts(c){return c&&c.type==="hemorrhagic"?TXQ.map(([v,t])=>[v,v==="M"?HEM_M:t]):TXQ}
 const MRS=["0: no symptoms","1: no significant disability","2: slight disability, independent","3: moderate disability, walks unaided","4: moderately severe disability, cannot walk unaided","5: severe disability, bedbound","6: died"];
 const TNKD="tenecteplase 0.25 mg/kg (maximum 25 mg) as a single bolus";
 const HEMTX={ivt:"Contraindicated: intracranial hemorrhage on CT.",evt:"Not indicated: this is not an ischemic stroke.",a:"M"};
@@ -1632,15 +1634,15 @@ function submit(){
   <div class="verdict ${pass?"pass":"fail"}">${pass?"Cleared.":"Not yet."} You scored ${tot}, reference ${c.total} (${diff>0?"+":""}${diff}); ${agree}/15 items exact. ${pass?`Cases cleared: ${n} of ${PASS.need}.`:`Needs total within ±${PASS.tol} and ${PASS.agree}/15 items.`}</div>
   ${scoreFb(c,rows,tot)}
   ${c.lvo?`<div class="lvo" id="lvoBox"><h3 class="osw" style="margin:0 0 4px">Vessel call</h3><p class="note" style="margin:0 0 8px">From the exam and the CT, what does this patient most likely have?</p><div class="opts">${LVOQ.map(([v,t])=>`<button class="opt" data-lvo="${v}"><b>${v}</b><span>${esc(t)}</span></button>`).join("")}</div><p id="lvoAns" style="margin:8px 0 0"></p></div>`:""}
-  ${c.tx?`<div class="lvo" id="txBox"><h3 class="osw" style="margin:0 0 4px">Treatment decision</h3><p class="note" style="margin:0 0 6px"><b>LKW ${esc(c.lkw)} · now ${esc(c.tx.now)} (${esc(c.tx.since)} since LKW).</b> ${esc(c.tx.chart)} ${esc(c.vit?`BP ${c.vit[0]}, glucose ${c.vit[3]} mg/dL.`:"")}</p><div class="opts">${TXQ.map(([v,t])=>`<button class="opt" data-tx="${v}"><b>${v==="TE"?"T+E":v}</b><span>${esc(t)}</span></button>`).join("")}</div><div id="txAns" style="margin:8px 0 0"></div></div>`:""}
+  ${c.tx?`<div class="lvo" id="txBox"><h3 class="osw" style="margin:0 0 4px">Treatment decision</h3><p class="note" style="margin:0 0 6px"><b>LKW ${esc(c.lkw)} · now ${esc(c.tx.now)} (${esc(c.tx.since)} since LKW).</b> ${esc(c.tx.chart)} ${esc(c.vit?`BP ${c.vit[0]}, glucose ${c.vit[3]} mg/dL.`:"")}</p><div class="opts">${txOpts(c).map(([v,t])=>`<button class="opt" data-tx="${v}"><b>${v==="TE"?"T+E":v}</b><span>${esc(t)}</span></button>`).join("")}</div><div id="txAns" style="margin:8px 0 0"></div></div>`:""}
   ${TP[c.id]?`<div class="lvo tp" id="tpBox" ${c.tx?"hidden":""}><h3 class="osw" style="margin:0 0 6px">Answer key and teaching points</h3>
-    <p style="margin:0 0 6px"><b>Reference NIHSS:</b> ${c.total}${c.lvo?` · <b>Vessel:</b> ${esc(c.lvo.site)}`:""}${c.tx?` · <b>Best treatment:</b> ${esc(Object.fromEntries(TXQ)[c.tx.a])}`:""}</p>
+    <p style="margin:0 0 6px"><b>Reference NIHSS:</b> ${c.total}${c.lvo?` · <b>Vessel:</b> ${esc(c.lvo.site)}`:""}${c.tx?` · <b>Best treatment:</b> ${esc(Object.fromEntries(txOpts(c))[c.tx.a])}`:""}</p>
     <ol style="margin:0;padding-left:20px;line-height:1.45">${TP[c.id].map(t=>`<li style="margin:4px 0">${esc(t)}</li>`).join("")}</ol></div>`:""}
   <div class="scroll"><table class="stack"><thead><tr><th>Item</th><th class="num">You</th><th class="num">Ref</th><th>Why</th></tr></thead><tbody>
   ${rows.map(r=>`<tr><td><b>${esc(r.k)}</b> ${esc(r.n)}</td><td class="num ${r.ok?"y":"n"}">${r.u}</td><td class="num">${r.r}</td><td>${esc(r.why)}</td></tr>`).join("")}</tbody></table></div>
   <div class="row" style="margin-top:12px"><button class="btn" id="bAgain">Retry case</button><button class="btn ghost" id="bOut">Back to ward</button>${n>=PASS.need?`<button class="btn red" id="bCert">Get certificate</button>`:""}</div>`;
   document.querySelectorAll("[data-tx]").forEach(b=>b.onclick=()=>{const t=c.tx,v=b.dataset.tx,ok=v===t.a,part=!ok&&t.alt===v;document.querySelectorAll("[data-tx]").forEach(x=>{x.disabled=true;if(x.dataset.tx===t.a)x.classList.add("sel")});ok?SFX.win():part?SFX.click():SFX.lose();
-    const lab=Object.fromEntries(TXQ);const o=c.img&&c.img.key&&c.img.key.startsWith("isles")?OUTC[c.id]:undefined,vol=caseImg(c)&&caseImg(c).vols&&caseImg(c).vols.Infarct;
+    const lab=Object.fromEntries(txOpts(c));const o=c.img&&c.img.key&&c.img.key.startsWith("isles")?OUTC[c.id]:undefined,vol=caseImg(c)&&caseImg(c).vols&&caseImg(c).vols.Infarct;
     $("#txAns").innerHTML=`<p style="margin:0 0 6px"><b style="color:${ok?"var(--green,#5fe8b5)":part?"#ffde59":"var(--red)"}">${ok?"Correct.":part?"Defensible, but not the guideline answer.":"Not the recommended choice."}</b> Best answer: <b>${esc(lab[t.a])}</b>.</p>
       <p style="margin:0 0 4px"><b>Thrombolysis:</b> ${esc(t.ivt)}</p><p style="margin:0 0 4px"><b>Thrombectomy:</b> ${esc(t.evt)}</p>${t.mm?`<p style="margin:0 0 4px"><b>Also:</b> ${esc(t.mm)}</p>`:""}
       ${o!==undefined?`<div class="outc"><b>Real outcome (ISLES'24 patient whose scans you viewed)</b><br>${o===null?"3-month mRS not recorded in the dataset":`3-month mRS ${esc(MRS[o])}`}${vol?` · final infarct ${vol} mL`:""}. The dataset does not record which treatment that patient received, and that patient's history differs from this simulated case.</div>`:""}
@@ -1727,7 +1729,7 @@ function mrOn(){if(VR.mr)return;const hid=[],b=new THREE.Box3(),sz=new THREE.Vec
   hid.forEach(o=>o.visible=false);VR.mr={hid,bg:G.scene.background,fog:G.scene.fog,ca:G.renderer.getClearAlpha()};G.scene.background=null;G.scene.fog=null;G.renderer.setClearAlpha(0)}
 function mrOff(){const m=VR.mr;if(!m)return;m.hid.forEach(o=>o.visible=true);G.scene.background=m.bg;G.scene.fog=m.fog;G.renderer.setClearAlpha(m.ca);VR.mr=null;VR.mode="vr"}
 function vrDebrief(P,x,W,H,c){
-  const pg=sim.vrPage||"score",lab=Object.fromEntries(TXQ);x.textBaseline="top";
+  const pg=sim.vrPage||"score",lab=Object.fromEntries(txOpts(c));x.textBaseline="top";
   const head=t=>{x.fillStyle="#fff";x.font="italic 400 46px Anton, Impact, sans-serif";wrapT(x,t,40,96,W-80,52,2)};
   const body=(t,y,col,max)=>{x.font="400 27px Atkinson Hyperlegible, sans-serif";x.fillStyle=col||"#fff";return y+wrapT(x,t,40,y,W-80,34,max||6)*34+12};
   const go=pp=>()=>{sim.vrPage=pp;drawVRExam()};
@@ -1738,7 +1740,7 @@ function vrDebrief(P,x,W,H,c){
       vbtn(P,"nx",40,H-120,W-80,84,c.tx?"Next: treatment decision":"Next: teaching points",{fill:"#ff3b4e",act:go(c.tx?"tx":"tp")})}
     P.tx.needsUpdate=true;return}
   if(pg==="tx"&&c.tx){const t=c.tx;head("Treatment decision");let y=body(`LKW ${c.lkw} · now ${t.now} (${t.since} since LKW). ${t.chart}`,210,"#d6dde0",5);
-    TXQ.forEach(([v,tt])=>{const done=sim.vrTx!==undefined,isA=v===t.a;vbtn(P,"tx"+v,40,y,W-80,74,"",{sel:done&&isA,fill:done&&v===sim.vrTx&&!isA?"rgba(255,59,78,.35)":undefined,lock:done,act:()=>{sim.vrTx=v;const b=document.querySelector(`[data-tx="${v}"]`);if(b)b.click();drawVRExam()},
+    txOpts(c).forEach(([v,tt])=>{const done=sim.vrTx!==undefined,isA=v===t.a;vbtn(P,"tx"+v,40,y,W-80,74,"",{sel:done&&isA,fill:done&&v===sim.vrTx&&!isA?"rgba(255,59,78,.35)":undefined,lock:done,act:()=>{sim.vrTx=v;const b=document.querySelector(`[data-tx="${v}"]`);if(b)b.click();drawVRExam()},
       draw:(xx,ink)=>{xx.font="700 32px Oswald, sans-serif";xx.fillStyle=ink;xx.fillText(v==="TE"?"T+E":v,64,y+37);xx.font="400 27px Atkinson Hyperlegible, sans-serif";xx.fillText(tt,170,y+37)}});y+=84});
     if(sim.vrTx!==undefined){const ok=sim.vrTx===t.a,part=!ok&&t.alt===sim.vrTx;y=body((ok?"Correct. ":part?"Defensible, but not the guideline answer. ":"Not the recommended choice. ")+"Best answer: "+lab[t.a]+".",y+6,ok?"#5fe8b5":part?"#ffde59":"#ff9aa4",2);
       y=body("Thrombolysis: "+t.ivt,y,"#fff",5);y=body("Thrombectomy: "+t.evt,y,"#fff",5);
